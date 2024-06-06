@@ -5,7 +5,7 @@ public class AntContext {
 
     // TODO: Grab the rb compoinent somewhere in code to avoid assigning in editor
     public Rigidbody rb;
-    public StateManager<AntStateMachine.EAntStates> antStateMachine;
+    public AntStateMachine antStateMachine;
     public Gamepad controller;
     public GameCameraStateMachine camera;
 
@@ -23,7 +23,7 @@ public class AntContext {
 
     public int score;
 
-    public AntContext(StateManager<AntStateMachine.EAntStates> stateManager) {
+    public AntContext(AntStateMachine stateManager) {
         rb = stateManager.GetComponentInParent<Rigidbody>();
         controller = Gamepad.current;
         antStateMachine = stateManager;

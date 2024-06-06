@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class Active: AntBaseState 
 {
-    private StateManager<AntStateMachine.EAntStates> Ant;
+    private AntStateMachine Ant;
     private Gamepad controller;
     public Rigidbody rb;
     public GameCameraStateMachine camera;
@@ -75,6 +75,12 @@ public class Active: AntBaseState
                 Collectable collectable = hit.collider.GetComponent<Collectable>();
                 if (hit.distance < collectable.maxCollectableRange) collectable.Collected();
             }
+
+            if (hit.collider.tag == Tags.Resource) {
+                Resource resource = hit.collider.GetComponent<Resource>();
+                if (hit.distance < resource.maxCollectableRange) resource.Damage(Ant.baseDmg);
+            }
+
         }
 
     }

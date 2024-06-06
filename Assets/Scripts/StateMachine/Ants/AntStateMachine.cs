@@ -4,6 +4,8 @@ using UnityEngine;
 public class AntStateMachine : StateManager<AntStateMachine.EAntStates> 
 {
     public Rigidbody rb;
+    public float baseDmg = 10;
+
 
     public enum EAntStates {
         Idle,
