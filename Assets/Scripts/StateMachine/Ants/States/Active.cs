@@ -1,3 +1,5 @@
+using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,8 +36,6 @@ public class Active: AntBaseState
     public override void EnterState()
     {
         isActive = true;
-        // move controller to some common place
-        controller = Gamepad.current;
     }
 
     public override void ExitState()
@@ -48,7 +48,6 @@ public class Active: AntBaseState
         return StateKey;
     }
 
-    // TODO: Copy collision from AntMovement.cs and fix jump isGrounded
     public override void OnTriggerEnter(Collider other){}
     public override void OnTriggerExit(Collider other){}
     public override void OnTriggerStay(Collider other){}
@@ -62,7 +61,22 @@ public class Active: AntBaseState
 
         jumping = Input.GetKey(KeyCode.Space) || controller.aButton.isPressed;
 
+        if (Input.GetKeyDown(KeyCode.E) || controller.xButton.isPressed) Interact();
+
         HandleMovement();
+    }
+
+    private void Interact()
+    {
+        Ray ray = new Ray(camera.transform.position, camera.transform.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit)) {
+            if (hit.collider.tag == Tags.Collectable) {
+                Collectable collectable = hit.collider.GetComponent<Collectable>();
+                if (hit.distance < collectable.maxCollectableRange) collectable.Collected();
+            }
+        }
+
     }
 
     private void HandleMovement() {

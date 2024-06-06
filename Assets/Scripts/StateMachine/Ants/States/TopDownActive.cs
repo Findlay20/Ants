@@ -49,7 +49,6 @@ public class TopDownActive: AntBaseState
         return StateKey;
     }
 
-    // TODO: Copy collision from AntMovement.cs and fix jump isGrounded
     public override void OnTriggerEnter(Collider other){}
     public override void OnTriggerExit(Collider other){}
     public override void OnTriggerStay(Collider other){}
@@ -63,7 +62,22 @@ public class TopDownActive: AntBaseState
 
         jumping = Input.GetKey(KeyCode.Space) || controller.aButton.isPressed;
 
+        if (Input.GetKeyDown(KeyCode.E) || controller.xButton.isPressed) Interact();
+
         HandleMovement();
+    }
+
+    private void Interact()
+    {
+        Ray ray = new Ray(Ant.transform.position, Ant.transform.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit)) {
+            if (hit.collider.tag == Tags.Collectable) {
+                Collectable collectable = hit.collider.GetComponent<Collectable>();
+                if (hit.distance < collectable.maxCollectableRange) collectable.Collected();
+            }
+        }
+
     }
 
     private void HandleMovement() {
