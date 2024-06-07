@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class TopDownActive: AntBaseState 
 {
-    private StateManager<AntStateMachine.EAntStates> Ant;
+    private AntStateMachine Ant;
     private Gamepad controller;
     public Rigidbody rb;
     public GameCameraStateMachine camera;

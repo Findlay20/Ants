@@ -36,7 +36,7 @@ public class TopView : GameCameraBaseState
 
         // if (target) {
         Vector3 oldCameraFwd = camera.transform.forward;
-        topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
+        if (target) topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
 
         oldCameraFwd.y = 0;
         oldCameraFwd.Normalize();

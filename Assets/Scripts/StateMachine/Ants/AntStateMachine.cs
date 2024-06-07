@@ -39,7 +39,4 @@ public class AntStateMachine : StateManager<AntStateMachine.EAntStates>
 
         CurrentState = States[EAntStates.Idle];
     }
-
-
-
 }
