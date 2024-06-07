@@ -38,7 +38,7 @@ public class TargetView : GameCameraBaseState
         target = Context.target;
         Debug.Log("Entering Target View: " + target.gameObject.name);
         
-        cameraRotation = Quaternion.LookRotation(target.transform.forward);
+        cameraRotation = Quaternion.LookRotation(camera.transform.up);
         target.TransitionToState(AntStateMachine.EAntStates.Active);
 
         Cursor.visible = false;

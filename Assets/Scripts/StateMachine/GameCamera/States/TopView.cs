@@ -34,18 +34,18 @@ public class TopView : GameCameraBaseState
 
         Vector3 topViewPos = new Vector3(0, currentHeight, 0) ;
 
-        if (target) {
-            Vector3 targetForward = target.transform.forward;
-            topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
+        // if (target) {
+        Vector3 oldCameraFwd = camera.transform.forward;
+        topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
 
-            targetForward.y = 0;
-            targetForward.Normalize();
+        oldCameraFwd.y = 0;
+        oldCameraFwd.Normalize();
 
-            currentRotation = Quaternion.LookRotation(Vector3.down, targetForward);
-            camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        } else {
-            camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        }
+        currentRotation = Quaternion.LookRotation(Vector3.down, oldCameraFwd);
+        camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
+        // } else {
+        //     camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
+        // }
         
         
         if (target) target.TransitionToState(AntStateMachine.EAntStates.TopDownActive);
