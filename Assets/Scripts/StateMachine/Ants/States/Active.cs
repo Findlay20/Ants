@@ -10,12 +10,10 @@ public class Active: AntBaseState
     public GameCameraStateMachine camera;
     public InputActionMap inputActionMap;
     public InputAction move;
-
+    public InputAction running;
 
     public bool isActive = false;
 
-    
-    public bool running;
     public bool climbing;
     public bool isGrounded;
     public bool jumping;
@@ -31,9 +29,9 @@ public class Active: AntBaseState
         rb = Context.rb;
         camera = Context.camera;
 
-        inputActionMap = context.inputActions.FindActionMap("TargetView");
+        inputActionMap = context.inputActions.FindActionMap("TargetView").Clone();
         move = inputActionMap.FindAction("move");
-        running = inputActionMap.FindAction("sprint").IsPressed();
+        running = inputActionMap.FindAction("sprint");
         
         inputActionMap.FindAction("jump").performed += OnJump;
         inputActionMap.FindAction("interact").performed += Interact;
@@ -92,8 +90,8 @@ public class Active: AntBaseState
     }
 
     private void OnJump(InputAction.CallbackContext context) {
+        Debug.Log("Jump!");
         rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
-        isGrounded = false;
     }
 
 
@@ -109,7 +107,7 @@ public class Active: AntBaseState
         cameraRight.Normalize();
 
         
-        float speedMult = running ? Context.runSpeed : Context.walkSpeed; 
+        float speedMult = running.IsPressed() ? Context.runSpeed : Context.walkSpeed; 
         moveDirection = (cameraForward * move.ReadValue<Vector2>().y) + (cameraRight * move.ReadValue<Vector2>().x);
         moveDirection *= speedMult * Time.fixedDeltaTime;
         // TODO: For Walking on walls: rotate directon based on vector of point infront -> point behind        

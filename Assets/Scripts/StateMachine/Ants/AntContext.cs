@@ -16,7 +16,7 @@ public class AntContext {
     public float runSpeed = 3f;
     public float sidewaysSpeed = 0.2f;
     public float sidewaysSprintSpeed = 0.6f;
-    public float jumpForce = 0.1f;
+    public float jumpForce = 5f;
     public float stickToGroundForce = 1f;
     public float turningSpeed = 3f;
     public float sprintTurningSpeed = 5f;

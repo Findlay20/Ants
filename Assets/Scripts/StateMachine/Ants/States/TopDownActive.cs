@@ -8,11 +8,10 @@ public class TopDownActive: AntBaseState
     public GameCameraStateMachine camera;
     public InputActionMap inputActionMap;
     public InputAction move;
-
+    public InputAction running;
 
     public bool isActive = false;
 
-    public bool running;
     public bool climbing;
     public bool isGrounded;
     public bool jumping;
@@ -29,11 +28,12 @@ public class TopDownActive: AntBaseState
         camera = Context.camera;
         Debug.Log(rb);
 
-        inputActionMap = context.inputActions.FindActionMap("TopView");
+        inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
         move = inputActionMap.FindAction("move");
-        running = inputActionMap.FindAction("sprint").IsPressed();
+        running = inputActionMap.FindAction("sprint");
         
         inputActionMap.FindAction("interact").performed += Interact;
+        inputActionMap.FindAction("jump").performed += OnJump;
     }
 
     public override void EnterState()
@@ -82,6 +82,10 @@ public class TopDownActive: AntBaseState
         }
     }
 
+    private void OnJump(InputAction.CallbackContext context) {
+        rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
+    }
+
     private void HandleMovement() {
 
         // make direction of camera forward
@@ -93,7 +97,7 @@ public class TopDownActive: AntBaseState
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        float speedMult = running ? Context.runSpeed : Context.walkSpeed; 
+        float speedMult = running.IsPressed() ? Context.runSpeed : Context.walkSpeed; 
         moveDirection = (cameraForward * move.ReadValue<Vector2>().y) + (cameraRight * move.ReadValue<Vector2>().x);
         moveDirection *= speedMult * Time.fixedDeltaTime;
         // TODO: For Walking on walls: rotate directon based on vector of point infront -> point behind        

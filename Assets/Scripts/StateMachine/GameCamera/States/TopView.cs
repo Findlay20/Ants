@@ -26,7 +26,7 @@ public class TopView : GameCameraBaseState
         target = Context.target;
         camera = context.cameraStateMachine;
         currentHeight = context.TopViewCameraHeight;
-        inputActionMap = context.inputActions.FindActionMap("TopView");
+        inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
 
         cameraMove = inputActionMap.FindAction("cameraMove");
         inputActionMap.FindAction("switchView").performed += SwitchView;
