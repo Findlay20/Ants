@@ -4,15 +4,14 @@ using UnityEngine.InputSystem;
 public class TopDownActive: AntBaseState 
 {
     private AntStateMachine Ant;
-    private Gamepad controller;
     public Rigidbody rb;
     public GameCameraStateMachine camera;
+    public InputActionMap inputActionMap;
+    public InputAction move;
+
 
     public bool isActive = false;
 
-    
-    private float horizontalInput;
-    private float verticalInput;
     public bool running;
     public bool climbing;
     public bool isGrounded;
@@ -26,22 +25,27 @@ public class TopDownActive: AntBaseState
     {
         AntContext Context = context;
         Ant = Context.antStateMachine;
-        controller = Context.controller;
         rb = Context.rb;
         camera = Context.camera;
         Debug.Log(rb);
+
+        inputActionMap = context.inputActions.FindActionMap("TopView");
+        move = inputActionMap.FindAction("move");
+        running = inputActionMap.FindAction("sprint").IsPressed();
+        
+        inputActionMap.FindAction("interact").performed += Interact;
     }
 
     public override void EnterState()
     {
         isActive = true;
-        // move controller to some common place
-        controller = Gamepad.current;
+        inputActionMap.Enable();
     }
 
     public override void ExitState()
     {
         isActive = false;
+        inputActionMap.Disable();
     }
 
     public override AntStateMachine.EAntStates GetNextState()
@@ -56,18 +60,11 @@ public class TopDownActive: AntBaseState
 
     public override void UpdateState()
     {
-        running = Input.GetKey(KeyCode.LeftShift) || controller.leftTrigger.IsPressed();
-        horizontalInput = Input.GetAxis("Horizontal");
-        verticalInput = Input.GetAxis("Vertical");
-
-        jumping = Input.GetKey(KeyCode.Space) || controller.aButton.isPressed;
-
-        if (Input.GetKeyDown(KeyCode.E) || controller.xButton.isPressed) Interact();
 
         HandleMovement();
     }
 
-    private void Interact()
+      private void Interact(InputAction.CallbackContext context)
     {
         Ray ray = new Ray(Ant.transform.position, Ant.transform.forward);
         RaycastHit hit;
@@ -76,16 +73,16 @@ public class TopDownActive: AntBaseState
                 Collectable collectable = hit.collider.GetComponent<Collectable>();
                 if (hit.distance < collectable.maxCollectableRange) collectable.Collected();
             }
-        }
 
+            if (hit.collider.tag == Tags.Resource) {
+                Resource resource = hit.collider.GetComponent<Resource>();
+                if (hit.distance < resource.maxCollectableRange) resource.Damage(Ant.baseDmg);
+            }
+
+        }
     }
 
     private void HandleMovement() {
-
-        if (jumping){
-            rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
-            isGrounded = false;
-        }
 
         // make direction of camera forward
         Vector3 cameraForward = camera.gameCamera.transform.up;
@@ -97,7 +94,7 @@ public class TopDownActive: AntBaseState
         cameraRight.Normalize();
 
         float speedMult = running ? Context.runSpeed : Context.walkSpeed; 
-        moveDirection = (cameraForward * verticalInput) + (cameraRight * horizontalInput);
+        moveDirection = (cameraForward * move.ReadValue<Vector2>().y) + (cameraRight * move.ReadValue<Vector2>().x);
         moveDirection *= speedMult * Time.fixedDeltaTime;
         // TODO: For Walking on walls: rotate directon based on vector of point infront -> point behind        
 
@@ -118,12 +115,6 @@ public class TopDownActive: AntBaseState
             Ant.animations.Play("Walk");
         } else {
             Ant.animations.Stop("Walk");
-        }
-
-
-        // Reset position 
-        if (isActive && controller.bButton.isPressed || Input.GetKey(KeyCode.R)) {
-            Ant.transform.position = new Vector3(0,3.24f,0);
         }
 
     }

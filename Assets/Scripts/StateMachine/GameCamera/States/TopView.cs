@@ -6,9 +6,10 @@ public class TopView : GameCameraBaseState
 {
 
     private StateManager<GameCameraStateMachine.ECameraStates> camera;
-    private Gamepad controller;
-
     public AntStateMachine target;
+    private InputActionMap inputActionMap;
+    public InputAction cameraMove;
+    public InputAction zoom;
 
 
     [SerializeField] float rotationSpeed = 500f;
@@ -23,15 +24,19 @@ public class TopView : GameCameraBaseState
     public TopView(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(context, stateKey)
     {
         target = Context.target;
-        controller = context.controller;
         camera = context.cameraStateMachine;
         currentHeight = context.TopViewCameraHeight;
-    
+        inputActionMap = context.inputActions.FindActionMap("TopView");
+
+        cameraMove = inputActionMap.FindAction("cameraMove");
+        inputActionMap.FindAction("switchView").performed += SwitchView;
+        inputActionMap.FindAction("select").performed += SwitchTarget;
+        zoom = inputActionMap.FindAction("zoom");
     }
 
     public override void EnterState()
     {
-
+        inputActionMap.Enable();
         Vector3 topViewPos = new Vector3(0, currentHeight, 0) ;
 
         // if (target) {
@@ -55,7 +60,7 @@ public class TopView : GameCameraBaseState
 
     public override void ExitState()
     {
-        Context.target = target;         
+        inputActionMap.Disable();         
     }
     
     public override GameCameraStateMachine.ECameraStates GetNextState()
@@ -63,48 +68,27 @@ public class TopView : GameCameraBaseState
         return StateKey;
     }
 
-    public override void OnTriggerEnter(Collider other)
-    {
+    public override void OnTriggerEnter(Collider other){}
 
+    public override void OnTriggerExit(Collider other){}
 
-    }
-
-    public override void OnTriggerExit(Collider other)
-    {
-
-
-    }
-
-    public override void OnTriggerStay(Collider other)
-    {
-    
-
-    }
+    public override void OnTriggerStay(Collider other){}
        
-       
+    public void SwitchView(InputAction.CallbackContext context) {
+        camera.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
+    }
+
     public override void UpdateState()
     {
 
         // Rotate camera
         UpdateRotation();
-        UpdateZoom();
+        if (zoom.IsPressed()) UpdateZoom();
 
         if (target) {
             // Follow target
             SetPositionToTarget();
-
-            // Switch to active TargetView on button press
-            if (controller.yButton.wasPressedThisFrame || Input.GetKeyDown(KeyCode.Tab)){
-                camera.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
-            }
         }
-        
-
-        // Switch to TargetView on clicked target
-        if (Input.GetKeyUp(KeyCode.Mouse0)) {
-            SwitchTarget();
-        }
-
     }
 
     public void SetPositionToTarget() {
@@ -115,26 +99,14 @@ public class TopView : GameCameraBaseState
     }
 
     private void UpdateRotation() {
-
-        float mouseX = Input.GetAxis("Mouse X");
-        float turn = 0f;
-        if (Input.GetKey(KeyCode.E) || controller.rightShoulder.isPressed) {
-            turn = -1;
-        }
-        if (Input.GetKey(KeyCode.Q) || controller.leftShoulder.isPressed) {
-            turn = 1;  
-        }
-
-        Quaternion inputRotation = Quaternion.Euler(0, 0, turn);
+        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraMove.ReadValue<Vector2>().x);
         currentRotation *= inputRotation;
 
         camera.transform.rotation = Quaternion.RotateTowards(camera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
     }
 
     private void UpdateZoom() {
-        bool keyboardZoom = Input.GetKey(KeyCode.Z);
-        float mouseY = keyboardZoom ? Input.GetAxis("Mouse Y") : 0; 
-        float heightChange = controller.rightStick.y.ReadValue() + mouseY;
+        float heightChange = cameraMove.ReadValue<Vector2>().y;
         heightChange *= zoomSensitivity;
 
         currentHeight += heightChange;
@@ -143,15 +115,17 @@ public class TopView : GameCameraBaseState
         
     }
 
-    private void SwitchTarget() {
+    private void SwitchTarget(InputAction.CallbackContext context) {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit)){
             if (hit.collider.GetComponent<AntStateMachine>()){
                 if (target) target.TransitionToState(AntStateMachine.EAntStates.Idle);
                 target = hit.collider.GetComponent<AntStateMachine>();
-
+                
+                Context.target = target;
                 Debug.Log("New target: " + target.name);
+                
                 camera.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
             }
         };

@@ -6,15 +6,15 @@ using UnityEngine.InputSystem;
 public class Active: AntBaseState 
 {
     private AntStateMachine Ant;
-    private Gamepad controller;
     public Rigidbody rb;
     public GameCameraStateMachine camera;
+    public InputActionMap inputActionMap;
+    public InputAction move;
+
 
     public bool isActive = false;
 
     
-    private float horizontalInput;
-    private float verticalInput;
     public bool running;
     public bool climbing;
     public bool isGrounded;
@@ -28,20 +28,39 @@ public class Active: AntBaseState
     {
         AntContext Context = context;
         Ant = Context.antStateMachine;
-        controller = Context.controller;
         rb = Context.rb;
         camera = Context.camera;
+
+        inputActionMap = context.inputActions.FindActionMap("TargetView");
+        move = inputActionMap.FindAction("move");
+        running = inputActionMap.FindAction("sprint").IsPressed();
+        
+        inputActionMap.FindAction("jump").performed += OnJump;
+        inputActionMap.FindAction("interact").performed += Interact;
+
     }
+
 
     public override void EnterState()
     {
+        Debug.Log(Ant.gameObject.name + " entering Active state");
         isActive = true;
+        inputActionMap.Enable();
     }
 
     public override void ExitState()
     {
         isActive = false;
+        inputActionMap.Disable();
     }
+
+    public override void UpdateState()
+    {
+
+        HandleMovement();
+    }
+
+
 
     public override AntStateMachine.EAntStates GetNextState()
     {
@@ -53,20 +72,8 @@ public class Active: AntBaseState
     public override void OnTriggerStay(Collider other){}
 
 
-    public override void UpdateState()
-    {
-        running = Input.GetKey(KeyCode.LeftShift) || controller.leftTrigger.IsPressed();
-        horizontalInput = Input.GetAxis("Horizontal");
-        verticalInput = Input.GetAxis("Vertical");
 
-        jumping = Input.GetKey(KeyCode.Space) || controller.aButton.isPressed;
-
-        if (Input.GetKeyDown(KeyCode.E) || controller.xButton.isPressed) Interact();
-
-        HandleMovement();
-    }
-
-    private void Interact()
+    private void Interact(InputAction.CallbackContext context)
     {
         Ray ray = new Ray(camera.transform.position, camera.transform.forward);
         RaycastHit hit;
@@ -82,15 +89,15 @@ public class Active: AntBaseState
             }
 
         }
-
     }
 
-    private void HandleMovement() {
+    private void OnJump(InputAction.CallbackContext context) {
+        rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
+        isGrounded = false;
+    }
 
-        if (jumping){
-            rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
-            isGrounded = false;
-        }
+
+    private void HandleMovement() {
 
         // make direction of camera forward
         Vector3 cameraForward = camera.gameCamera.transform.forward;
@@ -103,7 +110,7 @@ public class Active: AntBaseState
 
         
         float speedMult = running ? Context.runSpeed : Context.walkSpeed; 
-        moveDirection = (cameraForward * verticalInput) + (cameraRight * horizontalInput);
+        moveDirection = (cameraForward * move.ReadValue<Vector2>().y) + (cameraRight * move.ReadValue<Vector2>().x);
         moveDirection *= speedMult * Time.fixedDeltaTime;
         // TODO: For Walking on walls: rotate directon based on vector of point infront -> point behind        
 
@@ -127,12 +134,6 @@ public class Active: AntBaseState
             Ant.animations.Play("Walk");
         } else {
             Ant.animations.Stop("Walk");
-        }
-
-
-        // Reset position 
-        if (isActive && controller.bButton.isPressed || Input.GetKey(KeyCode.R)) {
-            Ant.transform.position = new Vector3(0,3.24f,0);
         }
 
     }

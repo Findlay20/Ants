@@ -1,11 +1,12 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class AntStateMachine : StateManager<AntStateMachine.EAntStates> 
 {
     public Rigidbody rb;
     public float baseDmg = 10;
-
+    public InputActionAsset inputActions;
 
     public enum EAntStates {
         Idle,
@@ -21,7 +22,7 @@ public class AntStateMachine : StateManager<AntStateMachine.EAntStates>
     void Awake() {
         gameObject.tag = Tags.Player;
         InitialiseRigidBody();
-        _context = new AntContext(this);
+        _context = new AntContext(this, inputActions);
         InitiliaseStates();
     }
 

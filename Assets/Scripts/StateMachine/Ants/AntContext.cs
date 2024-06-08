@@ -6,8 +6,9 @@ public class AntContext {
     // TODO: Grab the rb compoinent somewhere in code to avoid assigning in editor
     public Rigidbody rb;
     public AntStateMachine antStateMachine;
-    public Gamepad controller;
+
     public GameCameraStateMachine camera;
+    public InputActionAsset inputActions;
 
     //TODO: Rework movement
     [Header("Moverment settings")]
@@ -23,11 +24,11 @@ public class AntContext {
 
     public int score;
 
-    public AntContext(AntStateMachine stateManager) {
+    public AntContext(AntStateMachine stateManager, InputActionAsset inputActions) {
         rb = stateManager.GetComponentInParent<Rigidbody>();
-        controller = Gamepad.current;
         antStateMachine = stateManager;
         camera = Camera.main.GetComponent<GameCameraStateMachine>();
+        this.inputActions = inputActions;
     }
 
 }

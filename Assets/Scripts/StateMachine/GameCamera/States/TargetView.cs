@@ -6,11 +6,12 @@ public class TargetView : GameCameraBaseState
 {
 
     private GameCameraStateMachine camera;
-    private Gamepad controller;
 
     // TODO: Make this generic? So that target can be non-ants in futere 
-    // maybe it would be in it's own state any - AntTopView.cs, BeetleTopView.cs, ...
+    // maybe it would be in it's own state anyway - AntTopView.cs, BeetleTopView.cs, ...
     public AntStateMachine target;
+    private InputActionMap inputActionMap;
+    public InputAction cameraMove;
 
     [SerializeField] Transform followTarget;
     [SerializeField] float cameraDistance = 1;
@@ -28,9 +29,11 @@ public class TargetView : GameCameraBaseState
     public TargetView(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(context, stateKey)
     {
         camera = context.cameraStateMachine;
-        controller = context.controller;
         target = context.target;
+        inputActionMap = context.inputActions.FindActionMap("TargetView");
 
+        cameraMove = inputActionMap.FindAction("cameraMove");
+        inputActionMap.FindAction("switchView").performed += SwitchView;
     }
 
     public override void EnterState()
@@ -39,8 +42,12 @@ public class TargetView : GameCameraBaseState
         Debug.Log("Entering Target View: " + target.gameObject.name);
         
         cameraRotation = Quaternion.LookRotation(camera.transform.up);
+        Debug.Log("target transitioning");
         target.TransitionToState(AntStateMachine.EAntStates.Active);
+        Debug.Log("target transitioned");
 
+        inputActionMap.Enable();
+        Debug.Log("inputActionMap enabled");
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -50,6 +57,8 @@ public class TargetView : GameCameraBaseState
     {
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        
+        inputActionMap.Disable();
     }
     
     public override GameCameraStateMachine.ECameraStates GetNextState()
@@ -57,40 +66,23 @@ public class TargetView : GameCameraBaseState
         return StateKey;
     }
 
-    public override void OnTriggerEnter(Collider other)
-    {
+    public override void OnTriggerEnter(Collider other){}
 
+    public override void OnTriggerExit(Collider other){}
 
-    }
-
-    public override void OnTriggerExit(Collider other)
-    {
-
-
-    }
-
-    public override void OnTriggerStay(Collider other)
-    {
-    
-
-    }
+    public override void OnTriggerStay(Collider other){}
        
-       
+    public void SwitchView(InputAction.CallbackContext context) {
+        camera.TransitionToState(GameCameraStateMachine.ECameraStates.TopView);
+    }
+
     public override void UpdateState()
     {
-        if (controller.yButton.wasPressedThisFrame || Input.GetKeyDown(KeyCode.Tab)){
-            camera.TransitionToState(GameCameraStateMachine.ECameraStates.TopView);
-            return;
-        }
 
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = Input.GetAxis("Mouse Y");
-
-        Quaternion inputRotation = Quaternion.Euler(0, controller.rightStick.x.ReadValue() + mouseX, 0);
+        Quaternion inputRotation = Quaternion.Euler(0, cameraMove.ReadValue<Vector2>().x, 0);
         cameraRotation *= inputRotation;
 
-        float inputHeightOffset = controller.rightStick.y.ReadValue() + mouseY;
-        cameraHeightOffset += inputHeightOffset * heightChangeSensitivity;
+        cameraHeightOffset += cameraMove.ReadValue<Vector2>().y * heightChangeSensitivity;
 
         cameraHeightOffset = Mathf.Clamp(cameraHeightOffset, cameraMinHeight, cameraMaxHeight);
 

@@ -1,11 +1,13 @@
 using UnityEngine;
 using System;
+using UnityEngine.InputSystem;
 
 public class GameCameraStateMachine : StateManager<GameCameraStateMachine.ECameraStates> {
     
 
     public Camera gameCamera;
     public MapGenerator mapGenerator;
+    public InputActionAsset inputActions;
 
     public enum ECameraStates {
         TopView,
@@ -21,7 +23,7 @@ public class GameCameraStateMachine : StateManager<GameCameraStateMachine.ECamer
         mapGenerator.DrawMapInEditior();
 
         gameCamera = GetComponent<Camera>();
-        _context = new GameCameraContext(this, gameCamera);
+        _context = new GameCameraContext(this, gameCamera, inputActions);
         InitiliaseStates();
     }
 
