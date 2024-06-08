@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 
 public class TopView : GameCameraBaseState
@@ -9,16 +10,18 @@ public class TopView : GameCameraBaseState
     public AntStateMachine target;
     private InputActionMap inputActionMap;
     public InputAction cameraMove;
+    public InputAction cameraRotate;
     public InputAction zoom;
 
 
     [SerializeField] float rotationSpeed = 500f;
     [SerializeField] float zoomSensitivity = 0.1f;
     private Quaternion currentRotation = Quaternion.Euler(90, 0, 0);
-    private float currentHeight;
+    private Vector2 cameraPositionOffset = Vector2.zero;
+    private float currentHeight = 10f;
     
     private float minZoom = 3.5f;
-    private float maxZoom = 10f;
+    private float maxZoom = 20f;
 
 
     public TopView(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(context, stateKey)
@@ -29,6 +32,7 @@ public class TopView : GameCameraBaseState
         inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
 
         cameraMove = inputActionMap.FindAction("cameraMove");
+        cameraRotate = inputActionMap.FindAction("cameraRotate");
         inputActionMap.FindAction("switchView").performed += SwitchView;
         inputActionMap.FindAction("select").performed += SwitchTarget;
         zoom = inputActionMap.FindAction("zoom");
@@ -83,23 +87,28 @@ public class TopView : GameCameraBaseState
 
         // Rotate camera
         UpdateRotation();
-        if (zoom.IsPressed()) UpdateZoom();
-
-        if (target) {
-            // Follow target
-            SetPositionToTarget();
+        if (zoom.IsPressed()){
+            UpdateZoom();
+        } else {
+            UpdatePosition();
         }
+
+    }
+
+    public void UpdatePosition() {
+            cameraPositionOffset += cameraMove.ReadValue<Vector2>();
+            Vector3 topViewPos = new Vector3(camera.transform.position.x + cameraPositionOffset.x, currentHeight, camera.transform.position.z + cameraPositionOffset.y);
+
+            camera.transform.SetPositionAndRotation(topViewPos, currentRotation);
     }
 
     public void SetPositionToTarget() {
             Vector3 topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
-            // camera.transform.Translate(topViewPos.normalized) ;
             camera.transform.SetPositionAndRotation(topViewPos, currentRotation);
-
     }
 
     private void UpdateRotation() {
-        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraMove.ReadValue<Vector2>().x);
+        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraRotate.ReadValue<float>());
         currentRotation *= inputRotation;
 
         camera.transform.rotation = Quaternion.RotateTowards(camera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);

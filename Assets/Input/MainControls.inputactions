@@ -76,6 +76,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "cameraRotate",
+                    "type": "Value",
+                    "id": "8d273c32-499a-43c7-a51e-bf4afaf3f230",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -158,17 +167,6 @@
                 },
                 {
                     "name": "",
-                    "id": "688848f3-f677-447f-8dff-66f43155af42",
-                    "path": "<Gamepad>/buttonSouth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "b0617152-6eb6-4754-a61e-b904866129c7",
                     "path": "<Keyboard>/leftShift",
                     "interactions": "",
@@ -223,59 +221,15 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "2D Vector",
-                    "id": "cb374099-b18d-417b-9f1c-1d0d624a047f",
-                    "path": "2DVector",
+                    "name": "",
+                    "id": "cd0ee703-6804-4bdf-8888-d7fa2ed6c7fd",
+                    "path": "<Mouse>/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "cameraMove",
-                    "isComposite": true,
+                    "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "130912f6-6a84-4300-8838-51eec294067e",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "cameraMove",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "5162f3d2-7aa0-4765-99af-f8275876979f",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "cameraMove",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "ad8d9dac-d296-48db-8ddd-a24e3b983340",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "cameraMove",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "5677339e-f04c-4f81-9549-4043191a1bc4",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "cameraMove",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -301,8 +255,8 @@
                 },
                 {
                     "name": "",
-                    "id": "5156f818-c136-40e6-b132-efe671121a82",
-                    "path": "<Mouse>/leftButton",
+                    "id": "688848f3-f677-447f-8dff-66f43155af42",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -312,8 +266,8 @@
                 },
                 {
                     "name": "",
-                    "id": "b6e951c5-0ece-4e33-b448-796b9d9578a4",
-                    "path": "<Gamepad>/buttonSouth",
+                    "id": "5156f818-c136-40e6-b132-efe671121a82",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -342,6 +296,72 @@
                     "action": "zoom",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "007899b4-5302-42bf-855e-723d953235ab",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "689cc5f9-fbe7-4f61-940b-4d6323c8609b",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "bf1a4530-bb0b-4c9e-a3be-c3b2b0497b13",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "941b1e8b-5e67-412c-bed3-e8984ebeab5d",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "2fb75bf5-c9bc-4e1c-b40c-fbf4d4985c5a",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "de010c12-9d87-4edf-9d90-9daa6f8c7a5a",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "cameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },
