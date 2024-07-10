@@ -30,7 +30,7 @@ public class TargetView : GameCameraBaseState
     {
         camera = context.cameraStateMachine;
         target = context.target;
-        inputActionMap = context.inputActions.FindActionMap("TargetView");
+        inputActionMap = context.inputActions.FindActionMap("TargetView").Clone();
 
         cameraMove = inputActionMap.FindAction("cameraMove");
         inputActionMap.FindAction("switchView").performed += SwitchView;

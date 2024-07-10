@@ -96,7 +96,8 @@ public class TopView : GameCameraBaseState
     }
 
     public void UpdatePosition() {
-            cameraPositionOffset += cameraMove.ReadValue<Vector2>();
+            // Instead need to move cursor and when near edge of window trigger camera move
+            //cameraPositionOffset = cameraMove.ReadValue<Vector2>();
             Vector3 topViewPos = new Vector3(camera.transform.position.x + cameraPositionOffset.x, currentHeight, camera.transform.position.z + cameraPositionOffset.y);
 
             camera.transform.SetPositionAndRotation(topViewPos, currentRotation);
