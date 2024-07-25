@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,6 +12,7 @@ public class GameCameraContext {
     public InputActionAsset inputActions;
     public GameObject cameraTarget;
 
+    //public Dictionary<String, CinemachineVirtualCamera> VirtualCameras;
 
     // Settings like move speed, rotate etc
     [Header("Camera Settings")]
@@ -19,7 +23,10 @@ public class GameCameraContext {
         gameCamera = GameCamera;
         cameraStateMachine = stateManager;
         this.inputActions = inputActions; 
-        cameraTarget = cameraStateMachine.GetComponentInChildren<GameObject>();
+        
+        //VirtualCameras.Add("TopDownView", cameraStateMachine.gameObject.transform.Find("Top Down Follow Camera").GetComponent<CinemachineVirtualCamera>());
+        //VirtualCameras.Add("TargetView", cameraStateMachine.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineVirtualCamera>());
+        //cameraTarget = cameraStateMachine.GetComponentInChildren<GameObject>();
     }
 
 }

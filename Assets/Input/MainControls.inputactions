@@ -69,7 +69,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "zoom",
+                    "name": "zoomKey",
                     "type": "Button",
                     "id": "e5f62f10-ff55-479d-83c9-fedb62fe728d",
                     "expectedControlType": "Button",
@@ -81,6 +81,15 @@
                     "name": "cameraRotate",
                     "type": "Value",
                     "id": "8d273c32-499a-43c7-a51e-bf4afaf3f230",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "zoomValue",
+                    "type": "Value",
+                    "id": "39125e7c-1e14-4c5f-a1cf-67bcbbca5fc9",
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
@@ -282,7 +291,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "zoom",
+                    "action": "zoomKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -293,7 +302,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "zoom",
+                    "action": "zoomKey",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -362,6 +371,28 @@
                     "action": "cameraRotate",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "a3254368-0605-4b82-a94b-de8a2914fb03",
+                    "path": "<Gamepad>/rightStick/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "zoomValue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4ae7974f-de87-44b5-830b-9fef90402c0d",
+                    "path": "<Mouse>/position/y",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "zoomValue",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },

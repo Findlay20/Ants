@@ -7,7 +7,6 @@ public class TargetView : GameCameraBaseState
 {
 
     private GameCameraStateMachine camera;
-
     public override CinemachineVirtualCamera virtualCamera => camera.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineVirtualCamera>();
 
     // TODO: Make this generic? So that target can be non-ants in futere 
@@ -42,15 +41,18 @@ public class TargetView : GameCameraBaseState
     public override void EnterState()
     {
         target = Context.target;
+     
+        virtualCamera.LookAt = target.transform;
+        virtualCamera.Follow = target.transform;
+        virtualCamera.Priority = 1;
+     
         Debug.Log("Entering Target View: " + target.gameObject.name);
+        Debug.Log("Switching to camera: " + virtualCamera);
         
         cameraRotation = Quaternion.LookRotation(camera.transform.up);
-        Debug.Log("target transitioning");
         target.TransitionToState(AntStateMachine.EAntStates.Active);
-        Debug.Log("target transitioned");
 
         inputActionMap.Enable();
-        Debug.Log("inputActionMap enabled");
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -61,6 +63,7 @@ public class TargetView : GameCameraBaseState
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         
+        virtualCamera.Priority = 0;
         inputActionMap.Disable();
     }
     
