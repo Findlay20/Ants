@@ -5,7 +5,7 @@ public class TopDownActive: AntBaseState
 {
     private AntStateMachine Ant;
     public Rigidbody rb;
-    public GameCameraStateMachine camera;
+    public GameCameraStateMachine cameraStateMachine;
     public InputActionMap inputActionMap;
     public InputAction move;
     public InputAction running;
@@ -25,7 +25,7 @@ public class TopDownActive: AntBaseState
         AntContext Context = context;
         Ant = Context.antStateMachine;
         rb = Context.rb;
-        camera = Context.camera;
+        cameraStateMachine = Context.cameraStateMachine;
         Debug.Log(rb);
 
         inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
@@ -89,8 +89,8 @@ public class TopDownActive: AntBaseState
     private void HandleMovement() {
 
         // make direction of camera forward
-        Vector3 cameraForward = camera.gameCamera.transform.up;
-        Vector3 cameraRight = camera.gameCamera.transform.right;
+        Vector3 cameraForward = cameraStateMachine.gameCamera.transform.up;
+        Vector3 cameraRight = cameraStateMachine.gameCamera.transform.right;
         
         cameraForward.y = 0;
         cameraRight.y = 0;

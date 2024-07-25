@@ -1,4 +1,5 @@
 using System;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,6 +7,8 @@ public class TargetView : GameCameraBaseState
 {
 
     private GameCameraStateMachine camera;
+
+    public override CinemachineVirtualCamera virtualCamera => camera.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineVirtualCamera>();
 
     // TODO: Make this generic? So that target can be non-ants in futere 
     // maybe it would be in it's own state anyway - AntTopView.cs, BeetleTopView.cs, ...

@@ -1,11 +1,13 @@
 using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
+using Cinemachine;
 
 public class GameCameraStateMachine : StateManager<GameCameraStateMachine.ECameraStates> {
     
 
     public Camera gameCamera;
+    public CinemachineBrain cinemachineBrain;
     public MapGenerator mapGenerator;
     public InputActionAsset inputActions;
 
@@ -18,11 +20,14 @@ public class GameCameraStateMachine : StateManager<GameCameraStateMachine.ECamer
 
 
     void Awake() {
+
+        //cinemachineBrain.SetCameraOverride();
+
         mapGenerator = FindFirstObjectByType<MapGenerator>();
         mapGenerator.drawMode = MapGenerator.DrawMode.Mesh;
         mapGenerator.DrawMapInEditior();
 
-        gameCamera = GetComponent<Camera>();
+        
         _context = new GameCameraContext(this, gameCamera, inputActions);
         InitiliaseStates();
     }

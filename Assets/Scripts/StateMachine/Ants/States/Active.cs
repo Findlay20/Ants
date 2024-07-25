@@ -27,7 +27,7 @@ public class Active: AntBaseState
         AntContext Context = context;
         Ant = Context.antStateMachine;
         rb = Context.rb;
-        camera = Context.camera;
+        camera = Context.cameraStateMachine;
 
         inputActionMap = context.inputActions.FindActionMap("TargetView").Clone();
         move = inputActionMap.FindAction("move");

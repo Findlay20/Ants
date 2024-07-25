@@ -7,6 +7,7 @@ public class GameCameraContext {
     public GameCameraStateMachine cameraStateMachine;
     public AntStateMachine target;
     public InputActionAsset inputActions;
+    public GameObject cameraTarget;
 
 
     // Settings like move speed, rotate etc
@@ -18,6 +19,7 @@ public class GameCameraContext {
         gameCamera = GameCamera;
         cameraStateMachine = stateManager;
         this.inputActions = inputActions; 
+        cameraTarget = cameraStateMachine.GetComponentInChildren<GameObject>();
     }
 
 }

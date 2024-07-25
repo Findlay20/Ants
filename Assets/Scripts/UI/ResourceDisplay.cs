@@ -8,7 +8,7 @@ public class ResourceDisplay : MonoBehaviour
     
     public Text text;
 
-    public ResourceDisplay() {
+     public ResourceDisplay() {
         text = FindAnyObjectByType<Text>();
     }
 
