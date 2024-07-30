@@ -81,10 +81,13 @@ public class Active: AntBaseState
 
     private void Interact(InputAction.CallbackContext context)
     {
+        // maybe always use orbit cam instead of active cam to support top view interaction
+        // or should this logic somewhere else entirely?
         Ray ray = new Ray(cameraStateMachine.gameCamera.transform.position, cameraStateMachine.gameCamera.transform.forward);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit)) {
             Debug.Log("Interacted with " + hit.collider.name);
+
             if (hit.collider.tag == Tags.Collectable) {
                 Collectable collectable = hit.collider.GetComponent<Collectable>();
                 if (hit.distance < collectable.maxCollectableRange + Vector3.Distance(Ant.transform.position, cameraStateMachine.gameCamera.transform.position)) collectable.Collected();
