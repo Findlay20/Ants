@@ -92,7 +92,7 @@ public class Active: AntBaseState
 
             if (hit.collider.tag == Tags.Resource) {
                 Resource resource = hit.collider.GetComponent<Resource>();
-                if (hit.distance < resource.maxCollectableRange) resource.Damage(Ant.baseDmg);
+                if (hit.distance < resource.maxCollectableRange  + Vector3.Distance(Ant.transform.position, cameraStateMachine.gameCamera.transform.position)) resource.Damage(Ant.baseDmg);
             }
 
         }

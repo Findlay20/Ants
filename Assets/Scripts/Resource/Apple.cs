@@ -20,7 +20,7 @@ public class Apple : Resource
     {
         // TODO: move to variables file probably
         resourceName = "Apple";
-        description = "Press E to harvest this apple";
+        description = "Press F to harvest this apple";
         gameObject.tag = Tags.Resource; // I want to do this in base idealy
 
         health = 30;
