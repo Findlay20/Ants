@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -7,7 +8,7 @@ using UnityEngine.InputSystem;
 public class TopView : GameCameraBaseState
 {
 
-    private StateManager<GameCameraStateMachine.ECameraStates> cameraStateMachine;
+    private GameCameraStateMachine cameraStateMachine;
     public override CinemachineVirtualCamera virtualCamera => cameraStateMachine.gameObject.transform.Find("Top Down Follow Camera").GetComponent<CinemachineVirtualCamera>();
 
     public AntStateMachine target;
@@ -16,6 +17,8 @@ public class TopView : GameCameraBaseState
     public InputAction cameraRotate;
     public InputAction zoomKey;
 
+    private List<float> zoomHeights = new List<float> {5f, 10f, 20f, 100f};
+    private int zoomSelected = 0;
 
     [SerializeField] float rotationSpeed = 500f;
     [SerializeField] float zoomSensitivity = 0.1f;
@@ -38,28 +41,30 @@ public class TopView : GameCameraBaseState
         cameraRotate = inputActionMap.FindAction("cameraRotate");
         inputActionMap.FindAction("switchView").performed += SwitchView;
         inputActionMap.FindAction("select").performed += SelectTarget;
-        zoomKey = inputActionMap.FindAction("zoomKey");
+        inputActionMap.FindAction("zoomKey").performed += SwitchZoom;
     }
 
     public override void EnterState()
     {
+        Vector3 oldCameraFwd = cameraStateMachine.gameCamera.transform.forward;
         virtualCamera.Priority = 1;
 
         inputActionMap.Enable();
         //Vector3 topViewPos = new Vector3(0, currentHeight, 0) ;
 
         // if (target) {
-        Vector3 oldCameraFwd = cameraStateMachine.transform.forward;
+        
         //if (target) topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
 
         oldCameraFwd.y = 0;
         oldCameraFwd.Normalize();
 
-        //currentRotation = Quaternion.LookRotation(Vector3.down, oldCameraFwd);
+        currentRotation = Quaternion.LookRotation(Vector3.down, oldCameraFwd);
         //cameraStateMachine.transform.SetPositionAndRotation( topViewPos, currentRotation );
         // } else {
         //     camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
         // }
+        virtualCamera.transform.rotation = currentRotation;
         
         
         if (target) {
@@ -101,45 +106,24 @@ public class TopView : GameCameraBaseState
     {
 
         // Rotate camera
-        //UpdateRotation();
-        if (zoomKey.IsPressed()){
-            UpdateZoom();
-        } else {
-            // Move to active ant if moving else move with cursor
-            //UpdatePosition();
-        }
+        UpdateRotation();
 
-    }
-
-    public void UpdatePosition() {
-            // Instead need to move cursor and when near edge of window trigger camera move
-            //cameraPositionOffset = cameraMove.ReadValue<Vector2>();
-            Vector3 topViewPos = new Vector3(cameraStateMachine.transform.position.x + cameraPositionOffset.x, currentHeight, cameraStateMachine.transform.position.z + cameraPositionOffset.y);
-
-            cameraStateMachine.transform.SetPositionAndRotation(topViewPos, currentRotation);
-    }
-
-    public void SetPositionToTarget() {
-            Vector3 topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
-            cameraStateMachine.transform.SetPositionAndRotation(topViewPos, currentRotation);
     }
 
     private void UpdateRotation() {
         Quaternion inputRotation = Quaternion.Euler(0, 0, cameraRotate.ReadValue<float>());
         currentRotation *= inputRotation;
 
-        cameraStateMachine.transform.rotation = Quaternion.RotateTowards(cameraStateMachine.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
+        virtualCamera.transform.rotation = Quaternion.RotateTowards(virtualCamera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
     }
 
-    private void UpdateZoom() {
-        float heightChange = zoomValue.ReadValue<float>();
-        heightChange *= zoomSensitivity;
-
-        currentHeight += heightChange;
-        currentHeight = Mathf.Clamp(currentHeight, minZoom, maxZoom);
-        virtualCamera.GetComponent<CinemachineCameraOffset>().m_Offset = new Vector3(0, 0, -currentHeight);
+    private void SwitchZoom(InputAction.CallbackContext context) {
+        zoomSelected++;
+        if (zoomSelected >= zoomHeights.Count) zoomSelected = 0;
         
+        virtualCamera.GetComponent<CinemachineCameraOffset>().m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
     }
+
 
     private void SelectTarget(InputAction.CallbackContext context) {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
