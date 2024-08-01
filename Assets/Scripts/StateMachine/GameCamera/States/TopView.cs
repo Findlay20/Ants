@@ -20,7 +20,8 @@ public class TopView : GameCameraBaseState
     private List<float> zoomHeights = new List<float> {5f, 10f, 20f, 100f};
     private int zoomSelected = 0;
 
-    [SerializeField] float rotationSpeed = 500f;
+    [SerializeField] float rotationSpeed = 50f;
+    [SerializeField] float rotationSmoothing = 0.3f;
     [SerializeField] float zoomSensitivity = 0.1f;
     private Quaternion currentRotation = Quaternion.Euler(90, 0, 0);
     private Vector2 cameraPositionOffset = Vector2.zero;
@@ -41,7 +42,8 @@ public class TopView : GameCameraBaseState
         cameraRotate = inputActionMap.FindAction("cameraRotate");
         inputActionMap.FindAction("switchView").performed += SwitchView;
         inputActionMap.FindAction("select").performed += SelectTarget;
-        inputActionMap.FindAction("zoomKey").performed += SwitchZoom;
+        inputActionMap.FindAction("zoomIn").performed += context => SwitchZoom(false);
+        inputActionMap.FindAction("zoomOut").performed += context => SwitchZoom(true);
     }
 
     public override void EnterState()
@@ -111,16 +113,20 @@ public class TopView : GameCameraBaseState
     }
 
     private void UpdateRotation() {
-        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraRotate.ReadValue<float>());
+        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraRotate.ReadValue<float>() * rotationSmoothing);
         currentRotation *= inputRotation;
 
         virtualCamera.transform.rotation = Quaternion.RotateTowards(virtualCamera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
     }
 
-    private void SwitchZoom(InputAction.CallbackContext context) {
-        zoomSelected++;
-        if (zoomSelected >= zoomHeights.Count) zoomSelected = 0;
-        
+    private void SwitchZoom(bool zoomOut) {
+        if (zoomOut && zoomSelected < zoomHeights.Count - 1) {
+            zoomSelected++; 
+        } 
+        else if (!zoomOut && zoomSelected != 0) {
+            zoomSelected--;
+        }
+
         virtualCamera.GetComponent<CinemachineCameraOffset>().m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
     }
 
