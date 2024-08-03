@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using UnityEngine.InputSystem;
 using Cinemachine;
+using System.Collections;
 
 public class GameCameraStateMachine : StateManager<GameCameraStateMachine.ECameraStates> {
     

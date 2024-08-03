@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
@@ -9,7 +10,8 @@ public class TopView : GameCameraBaseState
 {
 
     private GameCameraStateMachine cameraStateMachine;
-    public override CinemachineVirtualCamera virtualCamera => cameraStateMachine.gameObject.transform.Find("Top Down Follow Camera").GetComponent<CinemachineVirtualCamera>();
+    public CinemachineVirtualCamera virtualCamera => cameraStateMachine.gameObject.transform.Find("Top Down Follow Camera").GetComponent<CinemachineVirtualCamera>();
+    public CinemachineFreeLook otherCam => cameraStateMachine.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineFreeLook>();
 
     public AntStateMachine target;
     private InputActionMap inputActionMap;
@@ -18,24 +20,20 @@ public class TopView : GameCameraBaseState
     public InputAction zoomKey;
 
     private List<float> zoomHeights = new List<float> {5f, 10f, 20f, 100f};
-    private int zoomSelected = 0;
+    private int zoomSelected = 2;
 
     [SerializeField] float rotationSpeed = 50f;
     [SerializeField] float rotationSmoothing = 0.3f;
-    [SerializeField] float zoomSensitivity = 0.1f;
     private Quaternion currentRotation = Quaternion.Euler(90, 0, 0);
-    private Vector2 cameraPositionOffset = Vector2.zero;
-    private float currentHeight = 10f;
-    
-    private float minZoom = 3.5f;
-    private float maxZoom = 20f;
 
+    CinemachineCameraOffset cameraOffset;
 
     public TopView(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(context, stateKey)
     {
         target = Context.target;
         cameraStateMachine = context.cameraStateMachine;
-        currentHeight = context.TopViewCameraHeight;
+        cameraOffset = virtualCamera.GetComponent<CinemachineCameraOffset>();
+
         inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
 
         zoomValue = inputActionMap.FindAction("zoomValue");
@@ -44,28 +42,22 @@ public class TopView : GameCameraBaseState
         inputActionMap.FindAction("select").performed += SelectTarget;
         inputActionMap.FindAction("zoomIn").performed += context => SwitchZoom(false);
         inputActionMap.FindAction("zoomOut").performed += context => SwitchZoom(true);
+       
     }
 
     public override void EnterState()
     {
         Vector3 oldCameraFwd = cameraStateMachine.gameCamera.transform.forward;
         virtualCamera.Priority = 1;
+        cameraOffset.m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
 
         inputActionMap.Enable();
-        //Vector3 topViewPos = new Vector3(0, currentHeight, 0) ;
-
-        // if (target) {
-        
-        //if (target) topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
 
         oldCameraFwd.y = 0;
         oldCameraFwd.Normalize();
 
+        // Make camera up be forward direction of old camera
         currentRotation = Quaternion.LookRotation(Vector3.down, oldCameraFwd);
-        //cameraStateMachine.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        // } else {
-        //     camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        // }
         virtualCamera.transform.rotation = currentRotation;
         
         
@@ -74,9 +66,7 @@ public class TopView : GameCameraBaseState
             virtualCamera.Follow = target.transform;
         }
 
-        Debug.Log("Entering Top View: " + (target ? target.gameObject.name : ""));
-        Debug.Log("Switching to camera: " + virtualCamera);
-
+        // Lock cursor
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
@@ -85,6 +75,9 @@ public class TopView : GameCameraBaseState
     public override void ExitState()
     {
         inputActionMap.Disable();         
+
+        cameraStateMachine.StartCoroutine(SmoothTransitionToYAxisValue(-zoomHeights[0], 0.3f));
+
         virtualCamera.Priority = 0;
     }
     
@@ -127,7 +120,8 @@ public class TopView : GameCameraBaseState
             zoomSelected--;
         }
 
-        virtualCamera.GetComponent<CinemachineCameraOffset>().m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
+//        cameraOffset.m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
+        cameraStateMachine.StartCoroutine(SmoothTransitionToYAxisValue(-zoomHeights[zoomSelected], 0.2f));
     }
 
 
@@ -145,5 +139,21 @@ public class TopView : GameCameraBaseState
                 cameraStateMachine.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
             }
         };
+    }
+
+
+    private IEnumerator SmoothTransitionToYAxisValue(float targetValue, float duration) {
+        float startValue = cameraOffset.m_Offset.z;
+        float timeElapsed = 0f;
+
+        while (timeElapsed < duration)
+        {
+            timeElapsed += Time.deltaTime;
+            cameraOffset.m_Offset.z = Mathf.Lerp(startValue, targetValue, timeElapsed / duration);
+            yield return null; // Wait until the next frame
+        }
+
+        // Ensure the final value is set exactly to the target
+        cameraOffset.m_Offset.z = targetValue;
     }
 }

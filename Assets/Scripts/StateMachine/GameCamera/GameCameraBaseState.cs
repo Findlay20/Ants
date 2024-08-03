@@ -6,9 +6,9 @@ public abstract class GameCameraBaseState : BaseState<GameCameraStateMachine.ECa
 {
 
     public GameCameraContext Context;
-    public abstract CinemachineVirtualCamera virtualCamera {
-        get;
-    }
+    // public CinemachineVirtualCameraBase virtualCamera {
+    //     get;
+    // }
 
     public GameCameraBaseState(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(stateKey){
         Context = context;
