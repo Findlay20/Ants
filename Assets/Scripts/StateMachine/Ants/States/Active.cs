@@ -16,9 +16,7 @@ public class Active: AntBaseState
 
     public bool isActive = false;
 
-    public bool climbing;
     public bool isGrounded;
-    public bool jumping;
 
     private Vector3 moveDirection;
     private Quaternion targetRotation;
@@ -62,7 +60,7 @@ public class Active: AntBaseState
         
         Debug.DrawLine(cameraStateMachine.gameCamera.transform.position, cameraStateMachine.gameCamera.transform.position + (cameraStateMachine.gameCamera.transform.forward * 10), Color.red);
         
-
+        CheckGrounded();
         HandleMovement();
     }
 
@@ -77,6 +75,17 @@ public class Active: AntBaseState
     public override void OnTriggerExit(Collider other){}
     public override void OnTriggerStay(Collider other){}
 
+
+    private void CheckGrounded() {
+        Ray ray = new Ray(Ant.transform.position, -Ant.transform.up);
+        RaycastHit hit;
+        
+        if (Physics.Raycast(ray, out hit)) {
+            if (hit.distance < Ant.capsuleCollider.radius + 0.005) {
+                isGrounded = true;
+            }
+        }
+    }
 
 
     private void Interact(InputAction.CallbackContext context)
@@ -101,7 +110,8 @@ public class Active: AntBaseState
     }
 
     private void OnJump(InputAction.CallbackContext context) {
-        Debug.Log("Jump!");
+        if (!isGrounded) return;
+        isGrounded = false;
         rb.AddForce(Ant.transform.up * Context.jumpForce, ForceMode.VelocityChange);
     }
 
