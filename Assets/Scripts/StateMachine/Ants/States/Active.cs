@@ -1,4 +1,5 @@
 using System;
+using Cinemachine;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,7 +8,8 @@ public class Active: AntBaseState
 {
     private AntStateMachine Ant;
     public Rigidbody rb;
-    public GameCameraStateMachine camera;
+    public GameCameraStateMachine cameraStateMachine;
+    public ICinemachineCamera activeCamera;
     public InputActionMap inputActionMap;
     public InputAction move;
     public InputAction running;
@@ -27,8 +29,10 @@ public class Active: AntBaseState
         AntContext Context = context;
         Ant = Context.antStateMachine;
         rb = Context.rb;
-        camera = Context.camera;
+        cameraStateMachine = Context.cameraStateMachine;
+        activeCamera = cameraStateMachine.cinemachineBrain.ActiveVirtualCamera;
 
+        // TODO: Should probably be it's own action map
         inputActionMap = context.inputActions.FindActionMap("TargetView").Clone();
         move = inputActionMap.FindAction("move");
         running = inputActionMap.FindAction("sprint");
@@ -55,6 +59,10 @@ public class Active: AntBaseState
     public override void UpdateState()
     {
 
+        
+        Debug.DrawLine(cameraStateMachine.gameCamera.transform.position, cameraStateMachine.gameCamera.transform.position + (cameraStateMachine.gameCamera.transform.forward * 10), Color.red);
+        
+
         HandleMovement();
     }
 
@@ -73,17 +81,20 @@ public class Active: AntBaseState
 
     private void Interact(InputAction.CallbackContext context)
     {
-        Ray ray = new Ray(camera.transform.position, camera.transform.forward);
+  
+        Ray ray = new Ray(cameraStateMachine.gameCamera.transform.position, cameraStateMachine.gameCamera.transform.forward);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit)) {
+            Debug.Log("Interacted with " + hit.collider.name);
+
             if (hit.collider.tag == Tags.Collectable) {
                 Collectable collectable = hit.collider.GetComponent<Collectable>();
-                if (hit.distance < collectable.maxCollectableRange) collectable.Collected();
+                if (hit.distance < collectable.maxCollectableRange + Vector3.Distance(Ant.transform.position, cameraStateMachine.gameCamera.transform.position)) collectable.Collected();
             }
 
             if (hit.collider.tag == Tags.Resource) {
                 Resource resource = hit.collider.GetComponent<Resource>();
-                if (hit.distance < resource.maxCollectableRange) resource.Damage(Ant.baseDmg);
+                if (hit.distance < resource.maxCollectableRange  + Vector3.Distance(Ant.transform.position, cameraStateMachine.gameCamera.transform.position)) resource.Damage(Ant.baseDmg);
             }
 
         }
@@ -98,8 +109,8 @@ public class Active: AntBaseState
     private void HandleMovement() {
 
         // make direction of camera forward
-        Vector3 cameraForward = camera.gameCamera.transform.forward;
-        Vector3 cameraRight = camera.gameCamera.transform.right;
+        Vector3 cameraForward = cameraStateMachine.gameCamera.transform.forward;
+        Vector3 cameraRight = cameraStateMachine.gameCamera.transform.right;
         
         cameraForward.y = 0;
         cameraRight.y = 0;

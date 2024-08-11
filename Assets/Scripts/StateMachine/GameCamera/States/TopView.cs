@@ -1,66 +1,84 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 
 public class TopView : GameCameraBaseState
 {
 
-    private StateManager<GameCameraStateMachine.ECameraStates> camera;
+    private GameCameraStateMachine cameraStateMachine;
+    public CinemachineVirtualCamera virtualCamera => cameraStateMachine.gameObject.transform.Find("Top Down Follow Camera").GetComponent<CinemachineVirtualCamera>();
+    public CinemachineFreeLook otherCam => cameraStateMachine.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineFreeLook>();
+
     public AntStateMachine target;
     private InputActionMap inputActionMap;
-    public InputAction cameraMove;
-    public InputAction zoom;
+    public InputAction zoomValue;
+    public InputAction cameraRotate;
+    public InputAction zoomKey;
 
+    private List<float> zoomHeights = new List<float> {5f, 10f, 20f, 100f};
+    private int zoomSelected = 2;
 
-    [SerializeField] float rotationSpeed = 500f;
-    [SerializeField] float zoomSensitivity = 0.1f;
+    [SerializeField] float rotationSpeed = 50f;
+    [SerializeField] float rotationSmoothing = 0.3f;
     private Quaternion currentRotation = Quaternion.Euler(90, 0, 0);
-    private float currentHeight;
-    
-    private float minZoom = 3.5f;
-    private float maxZoom = 10f;
 
+    CinemachineCameraOffset cameraOffset;
 
     public TopView(GameCameraContext context, GameCameraStateMachine.ECameraStates stateKey) : base(context, stateKey)
     {
         target = Context.target;
-        camera = context.cameraStateMachine;
-        currentHeight = context.TopViewCameraHeight;
+        cameraStateMachine = context.cameraStateMachine;
+        cameraOffset = virtualCamera.GetComponent<CinemachineCameraOffset>();
+
         inputActionMap = context.inputActions.FindActionMap("TopView").Clone();
 
-        cameraMove = inputActionMap.FindAction("cameraMove");
+        zoomValue = inputActionMap.FindAction("zoomValue");
+        cameraRotate = inputActionMap.FindAction("cameraRotate");
         inputActionMap.FindAction("switchView").performed += SwitchView;
-        inputActionMap.FindAction("select").performed += SwitchTarget;
-        zoom = inputActionMap.FindAction("zoom");
+        inputActionMap.FindAction("select").performed += SelectTarget;
+        inputActionMap.FindAction("zoomIn").performed += context => SwitchZoom(false);
+        inputActionMap.FindAction("zoomOut").performed += context => SwitchZoom(true);
+       
     }
 
     public override void EnterState()
     {
-        inputActionMap.Enable();
-        Vector3 topViewPos = new Vector3(0, currentHeight, 0) ;
+        Vector3 oldCameraFwd = cameraStateMachine.gameCamera.transform.forward;
+        virtualCamera.Priority = 1;
+        cameraOffset.m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
 
-        // if (target) {
-        Vector3 oldCameraFwd = camera.transform.forward;
-        if (target) topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
+        inputActionMap.Enable();
 
         oldCameraFwd.y = 0;
         oldCameraFwd.Normalize();
 
+        // Make camera up be forward direction of old camera
         currentRotation = Quaternion.LookRotation(Vector3.down, oldCameraFwd);
-        camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        // } else {
-        //     camera.transform.SetPositionAndRotation( topViewPos, currentRotation );
-        // }
+        virtualCamera.transform.rotation = currentRotation;
         
         
-        if (target) target.TransitionToState(AntStateMachine.EAntStates.TopDownActive);
-        Debug.Log("Entering Top View: " + (target ? target.gameObject.name : ""));
+        if (target) {
+            target.TransitionToState(AntStateMachine.EAntStates.TopDownActive);
+            virtualCamera.Follow = target.transform;
+        }
+
+        // Lock cursor
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
 
     }
 
     public override void ExitState()
     {
         inputActionMap.Disable();         
+
+        cameraStateMachine.StartCoroutine(SmoothTransitionToYAxisValue(-zoomHeights[0], 0.3f));
+
+        virtualCamera.Priority = 0;
     }
     
     public override GameCameraStateMachine.ECameraStates GetNextState()
@@ -75,7 +93,8 @@ public class TopView : GameCameraBaseState
     public override void OnTriggerStay(Collider other){}
        
     public void SwitchView(InputAction.CallbackContext context) {
-        camera.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
+        if (!target) return;
+        cameraStateMachine.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
     }
 
     public override void UpdateState()
@@ -83,39 +102,30 @@ public class TopView : GameCameraBaseState
 
         // Rotate camera
         UpdateRotation();
-        if (zoom.IsPressed()) UpdateZoom();
-
-        if (target) {
-            // Follow target
-            SetPositionToTarget();
-        }
-    }
-
-    public void SetPositionToTarget() {
-            Vector3 topViewPos = new Vector3(target.transform.position.x, currentHeight, target.transform.position.z);
-            // camera.transform.Translate(topViewPos.normalized) ;
-            camera.transform.SetPositionAndRotation(topViewPos, currentRotation);
 
     }
 
     private void UpdateRotation() {
-        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraMove.ReadValue<Vector2>().x);
+        Quaternion inputRotation = Quaternion.Euler(0, 0, cameraRotate.ReadValue<float>() * rotationSmoothing);
         currentRotation *= inputRotation;
 
-        camera.transform.rotation = Quaternion.RotateTowards(camera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
+        virtualCamera.transform.rotation = Quaternion.RotateTowards(virtualCamera.transform.rotation, currentRotation, rotationSpeed * Time.fixedDeltaTime);
     }
 
-    private void UpdateZoom() {
-        float heightChange = cameraMove.ReadValue<Vector2>().y;
-        heightChange *= zoomSensitivity;
+    private void SwitchZoom(bool zoomOut) {
+        if (zoomOut && zoomSelected < zoomHeights.Count - 1) {
+            zoomSelected++; 
+        } 
+        else if (!zoomOut && zoomSelected != 0) {
+            zoomSelected--;
+        }
 
-        currentHeight += heightChange;
-        currentHeight = Mathf.Clamp(currentHeight, minZoom, maxZoom);
-        camera.transform.position = new Vector3(camera.transform.position.x, currentHeight, camera.transform.position.z);
-        
+//        cameraOffset.m_Offset = new Vector3(0, 0, -zoomHeights[zoomSelected]);
+        cameraStateMachine.StartCoroutine(SmoothTransitionToYAxisValue(-zoomHeights[zoomSelected], 0.2f));
     }
 
-    private void SwitchTarget(InputAction.CallbackContext context) {
+
+    private void SelectTarget(InputAction.CallbackContext context) {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit)){
@@ -126,8 +136,24 @@ public class TopView : GameCameraBaseState
                 Context.target = target;
                 Debug.Log("New target: " + target.name);
                 
-                camera.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
+                cameraStateMachine.TransitionToState(GameCameraStateMachine.ECameraStates.TargetView);
             }
         };
+    }
+
+
+    private IEnumerator SmoothTransitionToYAxisValue(float targetValue, float duration) {
+        float startValue = cameraOffset.m_Offset.z;
+        float timeElapsed = 0f;
+
+        while (timeElapsed < duration)
+        {
+            timeElapsed += Time.deltaTime;
+            cameraOffset.m_Offset.z = Mathf.Lerp(startValue, targetValue, timeElapsed / duration);
+            yield return null; // Wait until the next frame
+        }
+
+        // Ensure the final value is set exactly to the target
+        cameraOffset.m_Offset.z = targetValue;
     }
 }

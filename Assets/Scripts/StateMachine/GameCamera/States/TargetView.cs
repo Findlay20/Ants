@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using Cinemachine;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,6 +9,8 @@ public class TargetView : GameCameraBaseState
 {
 
     private GameCameraStateMachine camera;
+    public CinemachineFreeLook virtualCamera => camera.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineFreeLook>();
+    //public CinemachineVirtualCamera virtualCamera => camera.gameObject.transform.Find("Active Orbit Camera").GetComponent<CinemachineVirtualCamera>();
 
     // TODO: Make this generic? So that target can be non-ants in futere 
     // maybe it would be in it's own state anyway - AntTopView.cs, BeetleTopView.cs, ...
@@ -30,7 +35,7 @@ public class TargetView : GameCameraBaseState
     {
         camera = context.cameraStateMachine;
         target = context.target;
-        inputActionMap = context.inputActions.FindActionMap("TargetView");
+        inputActionMap = context.inputActions.FindActionMap("TargetView").Clone();
 
         cameraMove = inputActionMap.FindAction("cameraMove");
         inputActionMap.FindAction("switchView").performed += SwitchView;
@@ -39,15 +44,27 @@ public class TargetView : GameCameraBaseState
     public override void EnterState()
     {
         target = Context.target;
+     
+        virtualCamera.LookAt = target.transform;
+        virtualCamera.Follow = target.transform;
+        
+        
+        // I want to first set to this:
+        virtualCamera.m_YAxis.Value = 1f;
+                
+        
+        virtualCamera.Priority = 1;
+        
+        // Then smoothly move to this:
+        camera.StartCoroutine(SmoothTransitionToYAxisValue(0.05f, 0.8f));
+
         Debug.Log("Entering Target View: " + target.gameObject.name);
+        Debug.Log("Switching to camera: " + virtualCamera);
         
         cameraRotation = Quaternion.LookRotation(camera.transform.up);
-        Debug.Log("target transitioning");
         target.TransitionToState(AntStateMachine.EAntStates.Active);
-        Debug.Log("target transitioned");
 
         inputActionMap.Enable();
-        Debug.Log("inputActionMap enabled");
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -57,7 +74,9 @@ public class TargetView : GameCameraBaseState
     {
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        
+
+        camera.StartCoroutine(SmoothTransitionToYAxisValue(1f, 0.4f));
+        virtualCamera.Priority = 0;
         inputActionMap.Disable();
     }
     
@@ -92,5 +111,20 @@ public class TargetView : GameCameraBaseState
     }
 
     public Quaternion CameraRotation => cameraRotation;
+
+    private IEnumerator SmoothTransitionToYAxisValue(float targetValue, float duration) {
+        float startValue = virtualCamera.m_YAxis.Value;
+        float timeElapsed = 0f;
+
+        while (timeElapsed < duration)
+        {
+            timeElapsed += Time.deltaTime;
+            virtualCamera.m_YAxis.Value = Mathf.Lerp(startValue, targetValue, timeElapsed / duration);
+            yield return null; // Wait until the next frame
+        }
+
+        // Ensure the final value is set exactly to the target
+        virtualCamera.m_YAxis.Value = targetValue;
+    }
 
 }

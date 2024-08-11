@@ -7,7 +7,7 @@ public class AntContext {
     public Rigidbody rb;
     public AntStateMachine antStateMachine;
 
-    public GameCameraStateMachine camera;
+    public GameCameraStateMachine cameraStateMachine;
     public InputActionAsset inputActions;
 
     //TODO: Rework movement
@@ -27,7 +27,7 @@ public class AntContext {
     public AntContext(AntStateMachine stateManager, InputActionAsset inputActions) {
         rb = stateManager.GetComponentInParent<Rigidbody>();
         antStateMachine = stateManager;
-        camera = Camera.main.GetComponent<GameCameraStateMachine>();
+        cameraStateMachine = Camera.main.GetComponentInParent<GameCameraStateMachine>();
         this.inputActions = inputActions;
     }
 
